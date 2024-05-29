@@ -4,4 +4,32 @@
         android:title="Enable Touch"></CheckBoxPreference>
     <EditTextPreference android:key="numberOfCircles"
         android:title="Number of Circles"></EditTextPreference>
+    <EditTextPreference android:key="radiusOfCircles"
+        android:title="Circle radius"></EditTextPreference>
+    <EditTextPreference android:key="travelRadius"
+        android:title="Travel radius"></EditTextPreference>
+    <EditTextPreference android:key="alpha"
+        android:title="alpha"></EditTextPreference>
+    <EditTextPreference android:key="red"
+        android:title="red"></EditTextPreference>
+    <EditTextPreference android:key="green"
+        android:title="green"></EditTextPreference>
+    <EditTextPreference android:key="blue"
+        android:title="blue"></EditTextPreference>
+    <EditTextPreference android:key="sinOrCos"
+        android:title="sin or cos or nothing (must be one of those)"></EditTextPreference>
+    <CheckBoxPreference android:key="glow"
+        android:title="glow"></CheckBoxPreference>
+    <EditTextPreference android:key="horizontalOffset"
+        android:title="horizontal offset"></EditTextPreference>
+    <EditTextPreference android:key="verticalOffset"
+        android:title="vertical offset"></EditTextPreference>
+    <EditTextPreference android:key="speedMultiplier"
+        android:title="speed multiplier"></EditTextPreference>
+    <EditTextPreference android:key="rotationMultiplier"
+        android:title="Rotation multiplier (default 0)"></EditTextPreference>
+    <EditTextPreference android:key="glowOpacityMultiplier"
+        android:title="Glow opacity multiplier"></EditTextPreference>
+
+
 </PreferenceScreen>
