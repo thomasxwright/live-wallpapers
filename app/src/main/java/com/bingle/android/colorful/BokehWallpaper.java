@@ -1,37 +1,30 @@
 package com.bingle.android.colorful;
 
+import android.app.WallpaperManager;
 import android.content.SharedPreferences;
 import android.graphics.BlendMode;
 import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.LinearGradient;
 import android.graphics.Paint;
 import android.graphics.RadialGradient;
 import android.graphics.RectF;
 import android.graphics.Shader;
-import android.os.Handler;
+import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.service.wallpaper.WallpaperService;
+import android.util.Log;
 import android.view.SurfaceHolder;
 
 import java.util.Objects;
 
-public class MyWallpaperService extends WallpaperService {
+public class BokehWallpaper extends AnimationWallpaper {
+
 
     @Override
     public Engine onCreateEngine() {
-        return new MyWallpaperEngine();
+        return new BokehEngine();
     }
 
-    private class MyWallpaperEngine extends Engine {
-        private final Handler handler = new Handler();
-        private final Runnable drawRunner = new Runnable() {
-            @Override
-            public void run() {
-                draw();
-            }
-
-        };
+    class BokehEngine extends AnimationEngine {
         private int numberOfCircles;
         private float radiusOfCircles;
         private float travelRadius;
@@ -52,9 +45,14 @@ public class MyWallpaperService extends WallpaperService {
         private final Paint fillPaint = new Paint();
         private boolean visible = true;
 
-        public MyWallpaperEngine() {
+
+
+        @Override
+        public void onCreate(SurfaceHolder surfaceHolder) {
+            super.onCreate(surfaceHolder);
+
             SharedPreferences prefs = PreferenceManager
-                    .getDefaultSharedPreferences(MyWallpaperService.this);
+                    .getDefaultSharedPreferences(BokehWallpaper.this);
 
             numberOfCircles = Integer
                     .valueOf(prefs.getString("numberOfCircles", "9"));
@@ -75,85 +73,57 @@ public class MyWallpaperService extends WallpaperService {
             fillPaint.setAntiAlias(true);
             fillPaint.setStyle(Paint.Style.FILL);
             fillPaint.setColor(Color.argb(alpha, red, green, blue));
-
-            handler.post(drawRunner);
+//            Log.d("tag1", "onCreate()");
+            // By default we don't get touch events, so enable them.
+//            setTouchEventsEnabled(true);
         }
 
         @Override
-        public void onVisibilityChanged(boolean visible) {
-            this.visible = visible;
-            if (visible) {
-                handler.post(drawRunner);
-            } else {
-                handler.removeCallbacks(drawRunner);
-            }
-        }
-
-        @Override
-        public void onSurfaceDestroyed(SurfaceHolder holder) {
-            super.onSurfaceDestroyed(holder);
-            this.visible = false;
-            handler.removeCallbacks(drawRunner);
-        }
-
-        @Override
-        public void onSurfaceChanged(SurfaceHolder holder, int format,
-                                     int width, int height) {
-            this.width = width;
+        public void onSurfaceChanged(SurfaceHolder holder, int format, int width, int height) {
             this.height = height;
+            this.width = width;
+//            Log.d("tag1", "onSurfaceChanged()");
+
             super.onSurfaceChanged(holder, format, width, height);
         }
 
-//        @Override
-//        public void onTouchEvent(MotionEvent event) {
-////            if (touchEnabled) {
-////
-////                float x = event.getX();
-////                float y = event.getY();
-////                SurfaceHolder holder = getSurfaceHolder();
-////                Canvas canvas = null;
-////                try {
-////                    canvas = holder.lockCanvas();
-////                    if (canvas != null) {
-////                        canvas.drawColor(Color.BLACK);
-////                        circles.clear();
-////                        circles.add(new MyPoint(
-////                                String.valueOf(circles.size() + 1), x, y));
-////                        drawCircles(canvas, circles);
-////
-////                    }
-////                } finally {
-////                    if (canvas != null)
-////                        holder.unlockCanvasAndPost(canvas);
-////                }
-////                super.onTouchEvent(event);
-////            }
-//        }
 
-        private void draw() {
+        @Override
+        public void onSurfaceCreated(SurfaceHolder holder) {
+//            Log.d("tag1", "onSurfaceCreated()");
+        }
+
+
+        @Override
+        public Bundle onCommand(String action, int x, int y, int z, Bundle extras, boolean resultRequested) {
+            return super.onCommand(action, x, y, z, extras, resultRequested);
+        }
+
+        @Override
+        protected void drawFrame() {
             SurfaceHolder holder = getSurfaceHolder();
-            Canvas canvas = null;
+
+            Canvas c = null;
             try {
-                canvas = holder.lockCanvas();
-                if (canvas != null) {
-                    tick += 0.003f * speedMultiplier;
-                    drawItems(canvas);
+                c = holder.lockCanvas();
+                if (c != null) {
+                    draw(c);
                 }
             } finally {
-                if (canvas != null)
-                    holder.unlockCanvasAndPost(canvas);
-            }
-            handler.removeCallbacks(drawRunner);
-            if (visible) {
-                handler.postDelayed(drawRunner, 17);
+                if (c != null)
+                    holder.unlockCanvasAndPost(c);
             }
         }
 
-        // Surface view requires that all elements are drawn completely
-        private void drawItems(Canvas canvas) {
-            canvas.drawColor(Color.rgb(17, 13, 23));
-//            testOverlap(canvas, 400, 200, 4, 75f * (float) (Math.sin(tick)));
-            testOverlap(canvas, 500 * horizontalOffset, 1000 * verticalOffset, numberOfCircles, 555f * travelRadius * (float) (Math.sin(tick)));
+        void draw(Canvas c) {
+            c.drawColor(Color.rgb(17, 13, 23));
+            testOverlap(c, (float) width /2 * horizontalOffset, (float) (height * 1000) /2200 * verticalOffset, numberOfCircles, 555f * travelRadius * (float) (Math.sin(tick)));
+        }
+
+        @Override
+        protected void iteration() {
+            tick += 0.003f * speedMultiplier;
+            super.iteration();
         }
 
         private void testOverlap(Canvas canvas, float cx, float cy, int numItems, float distance) {
@@ -196,15 +166,6 @@ public class MyWallpaperService extends WallpaperService {
             fillPaint.setShader(null);
         }
 
-        private void drawGradient(Canvas canvas) {
-//            Shader shader = new LinearGradient(300, 0, 400, height - 400, Color.argb(0, 232, 12, 130), Color.argb(255, 232, 12, 130), Shader.TileMode.CLAMP);
-            Shader shader = new LinearGradient(300, 0, 400, 2280 - 400,
-                    new int[]{Color.argb(0, 175, 25, 198), Color.argb(130, 200, 12, 189), Color.argb(255, 232, 12, 130), Color.argb(255, 232, 12, 130), Color.argb(120, 200, 12, 189), Color.argb(0, 0, 0, 0)},
-                    new float[]{0, 0.5f, 0.75f, 0.8f, 0.81f, 0.82f},
-                    Shader.TileMode.CLAMP);
-            Paint paint = new Paint();
-            paint.setShader(shader);
-            canvas.drawRect(new RectF(0, 0, width, height), paint);
-        }
     }
+
 }
