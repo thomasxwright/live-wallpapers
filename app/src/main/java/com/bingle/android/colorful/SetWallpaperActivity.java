@@ -7,8 +7,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 
-import com.bingle.android.colorful.MyWallpaperService;
-
 public class SetWallpaperActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -20,7 +18,7 @@ public class SetWallpaperActivity extends Activity {
         Intent intent = new Intent(
                 WallpaperManager.ACTION_CHANGE_LIVE_WALLPAPER);
         intent.putExtra(WallpaperManager.EXTRA_LIVE_WALLPAPER_COMPONENT,
-                new ComponentName(this, MyWallpaperService.class));
+                new ComponentName(this, GradientBarWallpaper.class));
         startActivity(intent);
     }
 }

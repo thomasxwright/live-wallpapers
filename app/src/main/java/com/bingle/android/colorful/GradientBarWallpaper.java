@@ -1,30 +1,32 @@
 package com.bingle.android.colorful;
 
-import android.app.WallpaperManager;
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
+import android.animation.ValueAnimator;
 import android.content.SharedPreferences;
 import android.graphics.BlendMode;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.LinearGradient;
 import android.graphics.Paint;
 import android.graphics.RadialGradient;
 import android.graphics.RectF;
 import android.graphics.Shader;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.util.Log;
 import android.view.SurfaceHolder;
 
 import java.util.Objects;
 
-public class BokehWallpaper extends AnimationWallpaper {
+public class GradientBarWallpaper extends AnimationWallpaper {
 
 
     @Override
     public Engine onCreateEngine() {
-        return new BokehEngine();
+        return new GradientBarEngine();
     }
 
-    class BokehEngine extends AnimationEngine {
+    class GradientBarEngine extends AnimationEngine {
         private int numberOfCircles;
         private float radiusOfCircles;
         private float travelRadius;
@@ -44,15 +46,24 @@ public class BokehWallpaper extends AnimationWallpaper {
         private float tick;
         private final Paint fillPaint = new Paint();
         private boolean visible = true;
-
-
+        private float valueForAnimation;
+        private ValueAnimator valueAnimator;
 
         @Override
         public void onCreate(SurfaceHolder surfaceHolder) {
             super.onCreate(surfaceHolder);
+            valueAnimator = ValueAnimator.ofFloat(0, 800);
+            valueAnimator.setDuration(3000);
+            valueAnimator.start();
+            valueAnimator.addListener(new AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    valueAnimator.start();
+                }
+            });
 
             SharedPreferences prefs = PreferenceManager
-                    .getDefaultSharedPreferences(BokehWallpaper.this);
+                    .getDefaultSharedPreferences(GradientBarWallpaper.this);
 
             numberOfCircles = Integer
                     .valueOf(prefs.getString("numberOfCircles", "9"));
@@ -117,13 +128,27 @@ public class BokehWallpaper extends AnimationWallpaper {
 
         void draw(Canvas c) {
             c.drawColor(Color.rgb(17, 13, 23));
-            testOverlap(c, (float) width /2 * horizontalOffset, (float) (height * 1000) /2200 * verticalOffset, numberOfCircles, 555f * travelRadius * (float) (Math.sin(tick)));
+            drawGradient(c);
+            testOverlap(c, (float) width / 2 * horizontalOffset, (float) (height * 1000) / 2200 * verticalOffset, numberOfCircles, 555f * travelRadius * (float) (Math.sin(tick)));
+            fillPaint.setBlendMode(BlendMode.SRC_OVER);
         }
 
         @Override
         protected void iteration() {
+            valueForAnimation = (float) valueAnimator.getAnimatedValue();
             tick += 0.003f * speedMultiplier;
             super.iteration();
+        }
+
+        private void drawGradient(Canvas canvas) {
+            Gradient[] gradients = {SampleGradients.OceanGreen, SampleGradients.desolateGraveyard, SampleGradients.burntOrange, SampleGradients.lakeMurk, SampleGradients.pearlRaspberry, SampleGradients.cynthia, SampleGradients.neonWarm, SampleGradients.spicyLavender};
+            Shader shader;
+            for (int i = 0; i < gradients.length; i++) {
+                shader = new LinearGradient(50, 0, width - 50, 0, gradients[i].getColors(), gradients[i].getPositions(), Shader.TileMode.CLAMP);
+                fillPaint.setShader(shader);
+                canvas.drawRect(new RectF(50, 200 + 300 * i + valueForAnimation, width - 50, 400 + 300 * i + valueForAnimation), fillPaint);
+            }
+            fillPaint.setShader(null);
         }
 
         private void testOverlap(Canvas canvas, float cx, float cy, int numItems, float distance) {
@@ -138,7 +163,7 @@ public class BokehWallpaper extends AnimationWallpaper {
                     offset = (float) Math.cos(multiplier + tick * speedMultiplier);
                 }
                 float rotationOffset = (float) (Math.sin(tick * rotationMultiplier));
-                offset += (float) (Math.cos(tick* rotationMultiplier) );
+                offset += (float) (Math.cos(tick * rotationMultiplier));
                 float xPos = cx + (float) (distance * Math.cos(Math.PI * 2 * offset));
                 float yPos = cy + (float) (distance * Math.sin(Math.PI * 2 * offset));
                 positions[i] = new float[]{xPos, yPos};
