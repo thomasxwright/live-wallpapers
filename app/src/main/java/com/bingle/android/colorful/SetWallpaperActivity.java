@@ -7,7 +7,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 
-import com.bingle.android.colorful.MyWallpaperService;
+import com.bingle.android.colorful.BokehWallpaper;
 
 public class SetWallpaperActivity extends Activity {
     @Override
@@ -20,7 +20,7 @@ public class SetWallpaperActivity extends Activity {
         Intent intent = new Intent(
                 WallpaperManager.ACTION_CHANGE_LIVE_WALLPAPER);
         intent.putExtra(WallpaperManager.EXTRA_LIVE_WALLPAPER_COMPONENT,
-                new ComponentName(this, MyWallpaperService.class));
+                new ComponentName(this, BokehWallpaper.class));
         startActivity(intent);
     }
 }
