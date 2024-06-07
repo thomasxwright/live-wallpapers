@@ -4,14 +4,19 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.ValueAnimator;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.BitmapShader;
 import android.graphics.BlendMode;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.LinearGradient;
+import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.RadialGradient;
 import android.graphics.RectF;
 import android.graphics.Shader;
+import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.view.SurfaceHolder;
@@ -48,12 +53,15 @@ public class GradientBarWallpaper extends AnimationWallpaper {
         private boolean visible = true;
         private float valueForAnimation;
         private ValueAnimator valueAnimator;
+        BitmapShader bitmapShader;
+        Matrix matrix;
+        Bitmap bitmap;
 
         @Override
         public void onCreate(SurfaceHolder surfaceHolder) {
             super.onCreate(surfaceHolder);
             valueAnimator = ValueAnimator.ofFloat(0, 800);
-            valueAnimator.setDuration(3000);
+            valueAnimator.setDuration(20000);
             valueAnimator.start();
             valueAnimator.addListener(new AnimatorListenerAdapter() {
                 @Override
@@ -64,6 +72,10 @@ public class GradientBarWallpaper extends AnimationWallpaper {
 
             SharedPreferences prefs = PreferenceManager
                     .getDefaultSharedPreferences(GradientBarWallpaper.this);
+
+            bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.gray_noise);
+            bitmapShader = new BitmapShader(bitmap, Shader.TileMode.REPEAT, Shader.TileMode.REPEAT);
+            matrix = new Matrix();
 
             numberOfCircles = Integer
                     .valueOf(prefs.getString("numberOfCircles", "9"));
@@ -146,7 +158,16 @@ public class GradientBarWallpaper extends AnimationWallpaper {
             for (int i = 0; i < gradients.length; i++) {
                 shader = new LinearGradient(50, 0, width - 50, 0, gradients[i].getColors(), gradients[i].getPositions(), Shader.TileMode.CLAMP);
                 fillPaint.setShader(shader);
+                fillPaint.setBlendMode(BlendMode.SRC_OVER);
                 canvas.drawRect(new RectF(50, 200 + 300 * i + valueForAnimation, width - 50, 400 + 300 * i + valueForAnimation), fillPaint);
+                fillPaint.setBlendMode(BlendMode.OVERLAY);
+                fillPaint.setShader(bitmapShader);
+                matrix.reset();
+                matrix.setScale(1,1);
+                matrix.preTranslate(50, 200 + 300 * i + valueForAnimation);
+                bitmapShader.setLocalMatrix(matrix);
+                canvas.drawRect(new RectF(50, 200 + 300 * i + valueForAnimation, width - 50, 400 + 300 * i + valueForAnimation), fillPaint);
+
             }
             fillPaint.setShader(null);
         }
