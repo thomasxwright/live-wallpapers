@@ -30,6 +30,12 @@
         android:title="Rotation multiplier (default 0)"></EditTextPreference>
     <EditTextPreference android:key="glowOpacityMultiplier"
         android:title="Glow opacity multiplier"></EditTextPreference>
+    <CheckBoxPreference android:key="textured"
+        android:title="has texture"></CheckBoxPreference>
+    <CheckBoxPreference android:key="showGradients"
+        android:title="has gradient bars"></CheckBoxPreference>
+
+
 
 
 </PreferenceScreen>

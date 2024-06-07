@@ -48,8 +48,10 @@ public class GradientBarWallpaper extends AnimationWallpaper {
         private float speedMultiplier;
         private float rotationMultiplier;
         private float glowOpacityMultiplier;
+        private boolean textured, showGradients;
         private float tick;
         private final Paint fillPaint = new Paint();
+        private final Paint texturePaint = new Paint();
         private boolean visible = true;
         private float valueForAnimation;
         private ValueAnimator valueAnimator;
@@ -73,8 +75,13 @@ public class GradientBarWallpaper extends AnimationWallpaper {
             SharedPreferences prefs = PreferenceManager
                     .getDefaultSharedPreferences(GradientBarWallpaper.this);
 
-            bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.gray_noise);
+            BitmapFactory.Options bitmapOptions = new BitmapFactory.Options();
+//            bitmapOptions.inScaled = false;
+            bitmapOptions.inDensity = 400;
+            bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.big_gray, bitmapOptions);
             bitmapShader = new BitmapShader(bitmap, Shader.TileMode.REPEAT, Shader.TileMode.REPEAT);
+            texturePaint.setBlendMode(BlendMode.OVERLAY);
+            texturePaint.setShader(bitmapShader);
             matrix = new Matrix();
 
             numberOfCircles = Integer
@@ -92,6 +99,8 @@ public class GradientBarWallpaper extends AnimationWallpaper {
             green = Integer.valueOf(prefs.getString("green", "48"));
             rotationMultiplier = Float.valueOf(prefs.getString("rotationMultiplier", "0f"));
             glowOpacityMultiplier = Float.valueOf(prefs.getString("glowOpacityMultiplier", "1f"));
+            textured = prefs.getBoolean("textured", false);
+            showGradients = prefs.getBoolean("showGradients", false);
             tick = 0;
             fillPaint.setAntiAlias(true);
             fillPaint.setStyle(Paint.Style.FILL);
@@ -140,7 +149,9 @@ public class GradientBarWallpaper extends AnimationWallpaper {
 
         void draw(Canvas c) {
             c.drawColor(Color.rgb(17, 13, 23));
-            drawGradient(c);
+            if (showGradients) {
+                drawGradient(c);
+            }
             testOverlap(c, (float) width / 2 * horizontalOffset, (float) (height * 1000) / 2200 * verticalOffset, numberOfCircles, 555f * travelRadius * (float) (Math.sin(tick)));
             fillPaint.setBlendMode(BlendMode.SRC_OVER);
         }
@@ -160,14 +171,13 @@ public class GradientBarWallpaper extends AnimationWallpaper {
                 fillPaint.setShader(shader);
                 fillPaint.setBlendMode(BlendMode.SRC_OVER);
                 canvas.drawRect(new RectF(50, 200 + 300 * i + valueForAnimation, width - 50, 400 + 300 * i + valueForAnimation), fillPaint);
-                fillPaint.setBlendMode(BlendMode.OVERLAY);
-                fillPaint.setShader(bitmapShader);
-                matrix.reset();
-                matrix.setScale(1,1);
-                matrix.preTranslate(50, 200 + 300 * i + valueForAnimation);
-                bitmapShader.setLocalMatrix(matrix);
-                canvas.drawRect(new RectF(50, 200 + 300 * i + valueForAnimation, width - 50, 400 + 300 * i + valueForAnimation), fillPaint);
-
+                if (textured) {
+                    matrix.reset();
+                    matrix.setScale(1, 1);
+                    matrix.preTranslate(50, 200 + 300 * i + valueForAnimation);
+                    bitmapShader.setLocalMatrix(matrix);
+                    canvas.drawRect(new RectF(50, 200 + 300 * i + valueForAnimation, width - 50, 400 + 300 * i + valueForAnimation), texturePaint);
+                }
             }
             fillPaint.setShader(null);
         }
@@ -198,6 +208,13 @@ public class GradientBarWallpaper extends AnimationWallpaper {
         private void drawGlowOrb(Canvas canvas, float cx, float cy, int radius) {
             fillPaint.setBlendMode(BlendMode.PLUS);
             canvas.drawCircle(cx, cy, radius, fillPaint);
+            if (textured) {
+                matrix.reset();
+                matrix.setScale(1, 1);
+                matrix.preTranslate(cx, cy);
+                bitmapShader.setLocalMatrix(matrix);
+                canvas.drawCircle(cx, cy, radius, texturePaint);
+            }
             if (glow) {
                 drawGlow(canvas, cx, cy, radius * 1.05f, .8f * glowOpacityMultiplier);
             }
