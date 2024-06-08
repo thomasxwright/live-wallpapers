@@ -34,6 +34,8 @@
         android:title="has texture"></CheckBoxPreference>
     <CheckBoxPreference android:key="showGradients"
         android:title="has gradient bars"></CheckBoxPreference>
+    <EditTextPreference android:key="hueScope"
+        android:title="hue scope: 1 is full spectrum between the orbs. 0 means all orbs are the same hue"></EditTextPreference>
 
 
 

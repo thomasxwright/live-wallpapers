@@ -49,11 +49,13 @@ public class GradientBarWallpaper extends AnimationWallpaper {
         private float rotationMultiplier;
         private float glowOpacityMultiplier;
         private boolean textured, showGradients;
+        private float hueScope;
         private float tick;
         private final Paint fillPaint = new Paint();
         private final Paint texturePaint = new Paint();
         private boolean visible = true;
         private float valueForAnimation;
+        private Orb[] orbs;
         private ValueAnimator valueAnimator;
         BitmapShader bitmapShader;
         Matrix matrix;
@@ -77,7 +79,7 @@ public class GradientBarWallpaper extends AnimationWallpaper {
 
             BitmapFactory.Options bitmapOptions = new BitmapFactory.Options();
 //            bitmapOptions.inScaled = false;
-            bitmapOptions.inDensity = 400;
+            bitmapOptions.inDensity = 530;
             bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.big_gray, bitmapOptions);
             bitmapShader = new BitmapShader(bitmap, Shader.TileMode.REPEAT, Shader.TileMode.REPEAT);
             texturePaint.setBlendMode(BlendMode.OVERLAY);
@@ -95,16 +97,26 @@ public class GradientBarWallpaper extends AnimationWallpaper {
             verticalOffset = Float.valueOf(prefs.getString("verticalOffset", "1f"));
             alpha = Integer.valueOf(prefs.getString("alpha", "255"));
             red = Integer.valueOf(prefs.getString("red", "217"));
-            blue = Integer.valueOf(prefs.getString("blue", "72"));
             green = Integer.valueOf(prefs.getString("green", "48"));
+            blue = Integer.valueOf(prefs.getString("blue", "72"));
             rotationMultiplier = Float.valueOf(prefs.getString("rotationMultiplier", "0f"));
+            hueScope = Float.valueOf(prefs.getString("hueScope", "1f"));
+
+            orbs = new Orb[numberOfCircles];
+            float[] hsv = new float[3];
+            Color.RGBToHSV(red, green, blue, hsv);
+            for (int i = 0; i < numberOfCircles; i++) {
+                float hue = (hsv[0] + (i * 360 * hueScope / numberOfCircles)) % 360;
+                int color = Color.HSVToColor(alpha, new float[] {hue, hsv[1], hsv[2]});
+                orbs[i] = new Orb(alpha, Color.red(color), Color.green(color), Color.blue(color));
+            }
+
             glowOpacityMultiplier = Float.valueOf(prefs.getString("glowOpacityMultiplier", "1f"));
             textured = prefs.getBoolean("textured", false);
             showGradients = prefs.getBoolean("showGradients", false);
             tick = 0;
             fillPaint.setAntiAlias(true);
             fillPaint.setStyle(Paint.Style.FILL);
-            fillPaint.setColor(Color.argb(alpha, red, green, blue));
 //            Log.d("tag1", "onCreate()");
             // By default we don't get touch events, so enable them.
 //            setTouchEventsEnabled(true);
@@ -200,18 +212,21 @@ public class GradientBarWallpaper extends AnimationWallpaper {
                 positions[i] = new float[]{xPos, yPos};
             }
 
-            for (float[] position : positions) {
-                drawGlowOrb(canvas, position[0], position[1], (int) (radiusOfCircles * 150));
+            for (int i = 0; i < positions.length; i++) {
+                float[] position = positions[i];
+                drawGlowOrb(canvas, position[0], position[1], (int) (radiusOfCircles * 150), orbs[i]);
             }
         }
 
-        private void drawGlowOrb(Canvas canvas, float cx, float cy, int radius) {
+        private void drawGlowOrb(Canvas canvas, float cx, float cy, int radius, Orb orb) {
+            fillPaint.setColor(orb.getColor());
             fillPaint.setBlendMode(BlendMode.PLUS);
             canvas.drawCircle(cx, cy, radius, fillPaint);
             if (textured) {
                 matrix.reset();
                 matrix.setScale(1, 1);
                 matrix.preTranslate(cx, cy);
+                matrix.preRotate(orb.getRotation());
                 bitmapShader.setLocalMatrix(matrix);
                 canvas.drawCircle(cx, cy, radius, texturePaint);
             }
