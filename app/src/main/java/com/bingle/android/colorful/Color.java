@@ -10,4 +10,7 @@ public class Color {
     public int getColor() {
         return android.graphics.Color.rgb(myRed, myGreen, myBlue);
     }
+    public int getRed() {return myRed;}
+    public int getGreen() {return myGreen;}
+    public int getBlue() {return myBlue;}
 }

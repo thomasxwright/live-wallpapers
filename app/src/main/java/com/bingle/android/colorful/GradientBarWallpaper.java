@@ -50,6 +50,7 @@ public class GradientBarWallpaper extends AnimationWallpaper {
         private float glowOpacityMultiplier;
         private boolean textured, showGradients;
         private float hueScope;
+        private int gradientIndex;
         private float tick;
         private final Paint fillPaint = new Paint();
         private final Paint texturePaint = new Paint();
@@ -57,6 +58,8 @@ public class GradientBarWallpaper extends AnimationWallpaper {
         private float valueForAnimation;
         private Orb[] orbs;
         private ValueAnimator valueAnimator;
+        Gradient[] gradients;
+
         BitmapShader bitmapShader;
         Matrix matrix;
         Bitmap bitmap;
@@ -86,6 +89,9 @@ public class GradientBarWallpaper extends AnimationWallpaper {
             texturePaint.setShader(bitmapShader);
             matrix = new Matrix();
 
+            gradients = new Gradient[]{SampleGradients.OceanGreen, SampleGradients.desolateGraveyard, SampleGradients.burntOrange, SampleGradients.lakeMurk, SampleGradients.pearlRaspberry, SampleGradients.cynthia, SampleGradients.neonWarm, SampleGradients.spicyLavender};
+
+
             numberOfCircles = Integer
                     .valueOf(prefs.getString("numberOfCircles", "9"));
             radiusOfCircles = Float.valueOf(prefs.getString("radiusOfCircles", "1f"));
@@ -101,14 +107,25 @@ public class GradientBarWallpaper extends AnimationWallpaper {
             blue = Integer.valueOf(prefs.getString("blue", "72"));
             rotationMultiplier = Float.valueOf(prefs.getString("rotationMultiplier", "0f"));
             hueScope = Float.valueOf(prefs.getString("hueScope", "1f"));
+            gradientIndex = Integer.valueOf(prefs.getString("gradientIndex", "0"));
+
 
             orbs = new Orb[numberOfCircles];
-            float[] hsv = new float[3];
-            Color.RGBToHSV(red, green, blue, hsv);
-            for (int i = 0; i < numberOfCircles; i++) {
-                float hue = (hsv[0] + (i * 360 * hueScope / numberOfCircles)) % 360;
-                int color = Color.HSVToColor(alpha, new float[] {hue, hsv[1], hsv[2]});
-                orbs[i] = new Orb(alpha, Color.red(color), Color.green(color), Color.blue(color));
+
+            if (gradientIndex > 0) {
+                GradientInterpolator interpolator = new GradientInterpolator(gradients[gradientIndex - 1], numberOfCircles);
+                com.bingle.android.colorful.Color[] interpolatedColors = interpolator.getInterpolatedColors();
+                for (int i = 0; i < numberOfCircles; i++) {
+                    orbs[i] = new Orb(alpha, interpolatedColors[i].getRed(), interpolatedColors[i].getGreen(), interpolatedColors[i].getBlue());
+                }
+            } else {
+                float[] hsv = new float[3];
+                Color.RGBToHSV(red, green, blue, hsv);
+                for (int i = 0; i < numberOfCircles; i++) {
+                    float hue = (hsv[0] + (i * 360 * hueScope / numberOfCircles)) % 360;
+                    int color = Color.HSVToColor(alpha, new float[]{hue, hsv[1], hsv[2]});
+                    orbs[i] = new Orb(alpha, Color.red(color), Color.green(color), Color.blue(color));
+                }
             }
 
             glowOpacityMultiplier = Float.valueOf(prefs.getString("glowOpacityMultiplier", "1f"));
@@ -176,10 +193,9 @@ public class GradientBarWallpaper extends AnimationWallpaper {
         }
 
         private void drawGradient(Canvas canvas) {
-            Gradient[] gradients = {SampleGradients.OceanGreen, SampleGradients.desolateGraveyard, SampleGradients.burntOrange, SampleGradients.lakeMurk, SampleGradients.pearlRaspberry, SampleGradients.cynthia, SampleGradients.neonWarm, SampleGradients.spicyLavender};
             Shader shader;
             for (int i = 0; i < gradients.length; i++) {
-                shader = new LinearGradient(50, 0, width - 50, 0, gradients[i].getColors(), gradients[i].getPositions(), Shader.TileMode.CLAMP);
+                shader = new LinearGradient(50, 0, width - 50, 0, gradients[i].getColorsAsInts(), gradients[i].getPositions(), Shader.TileMode.CLAMP);
                 fillPaint.setShader(shader);
                 fillPaint.setBlendMode(BlendMode.SRC_OVER);
                 canvas.drawRect(new RectF(50, 200 + 300 * i + valueForAnimation, width - 50, 400 + 300 * i + valueForAnimation), fillPaint);

@@ -36,6 +36,8 @@
         android:title="has gradient bars"></CheckBoxPreference>
     <EditTextPreference android:key="hueScope"
         android:title="hue scope: 1 is full spectrum between the orbs. 0 means all orbs are the same hue"></EditTextPreference>
+    <EditTextPreference android:key="gradientIndex"
+        android:title="choose a gradient from 1 to 8. or 0 if you don't want any."></EditTextPreference>
 
 
 
